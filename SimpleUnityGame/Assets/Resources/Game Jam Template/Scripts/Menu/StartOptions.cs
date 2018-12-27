@@ -9,8 +9,9 @@ public class StartOptions : MonoBehaviour {
 
 
     public MenuSettings menuSettingsData;
-	public int sceneToStart = 1;										//Index number in build settings of scene to load if changeScenes is true
-	public bool changeScenes;											//If true, load a new scene when Start is pressed, if false, fade out UI and continue in single scene
+	public int sceneToStart = 0;										//Index number in build settings of scene to load if changeScenes is true
+    public string firstLevelScene = "SampleScene";
+	public bool changeScenes = true;											//If true, load a new scene when Start is pressed, if false, fade out UI and continue in single scene
 	public bool changeMusicOnStart;										//Choose whether to continue playing menu music or start a new music clip
     public CanvasGroup fadeOutImageCanvasGroup;                         //Canvas group used to fade alpha of image which fades in before changing scenes
     public Image fadeImage;                                             //Reference to image used to fade out before changing scenes
@@ -48,14 +49,17 @@ public class StartOptions : MonoBehaviour {
 		{
 			playMusic.FadeDown(menuSettingsData.menuFadeTime);
 		}
-
-		//If changeScenes is true, start fading and change scenes halfway through animation when screen is blocked by FadeImage
-		if (menuSettingsData.nextSceneIndex != 0) 
+        Debug.Log("Foobar");
+        SceneManager.LoadScene(firstLevelScene);
+        //If changeScenes is true, start fading and change scenes halfway through animation when screen is blocked by FadeImage
+        /*if (menuSettingsData.nextSceneIndex != 0) 
 		{
 			//Use invoke to delay calling of LoadDelayed by half the length of fadeColorAnimationClip
 			Invoke ("LoadDelayed", menuSettingsData.menuFadeTime);
 
             StartCoroutine(FadeCanvasGroupAlpha(0f, 1f, fadeOutImageCanvasGroup));
+            SceneManager.LoadScene(firstLevelScene);
+
 
         } 
 
@@ -64,7 +68,7 @@ public class StartOptions : MonoBehaviour {
 		{
 			//Call the StartGameInScene function to start game without loading a new scene.
 			StartGameInScene();
-		}
+		}*/
 
 	}
 
