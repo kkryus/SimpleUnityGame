@@ -24,7 +24,7 @@ public class OpenDoor : MonoBehaviour
     void Update()
     {
         //If press F key on keyboard
-        if (Input.GetKeyDown(KeyCode.F) && !doorGo)
+        if (Input.GetKeyDown(KeyCode.E) && !doorGo)
         {
             //Calculate distance between player and door
             if (Vector3.Distance(playerTrans.position, this.transform.position) < 5f)
@@ -45,7 +45,7 @@ public class OpenDoor : MonoBehaviour
     {
         doorGo = true;
         //Check if close/open, if angle less 4 degree, or use another value more 0
-        while (transform.localPosition.y > 16.65)
+        while (transform.localPosition.y > 16.35)
         {
             transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y - Time.deltaTime * doorAnimSpeed, transform.localPosition.z);//Quaternion.Slerp(transform.localRotation, dest, Time.deltaTime * doorAnimSpeed);
             //UPDATE 1: add yield
