@@ -610,7 +610,6 @@ public class Weapon : MonoBehaviour
                     damage *= heat * powerMultiplier;
                     heat = 0.0f;
                 }
-
                 // Damage
                 hit.collider.gameObject.SendMessageUpwards("ChangeHealth", -damage, SendMessageOptions.DontRequireReceiver);
 
@@ -769,10 +768,10 @@ public class Weapon : MonoBehaviour
                 }
 
                 // Add force to the object that was hit
-                if (hit.rigidbody)
+                /*if (hit.rigidbody)
                 {
                     hit.rigidbody.AddForce(ray.direction * power * forceMultiplier);
-                }
+                }*/
             }
         }
 
