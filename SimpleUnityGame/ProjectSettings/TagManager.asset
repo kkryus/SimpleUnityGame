@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 2
   tags:
   - text
+  - zombie
+  - wall
   layers:
   - Default
   - TransparentFX
