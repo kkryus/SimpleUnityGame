@@ -46,7 +46,7 @@ public class ZombieBehaviour : MonoBehaviour
             Player.life -= 1;
             if(Player.life <= 0)
             {
-                SceneManager.LoadScene(0);
+                SceneManager.LoadScene(2);
             }
         }
         else
