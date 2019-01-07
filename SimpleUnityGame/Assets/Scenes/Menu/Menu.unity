@@ -44,7 +44,7 @@ RenderSettings:
 LightmapSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 11
-  m_GIWorkflowMode: 0
+  m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -89,7 +89,8 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ShowResolutionOverlay: 1
-  m_LightingDataAsset: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000004, guid: 902ee3bf5d1253c499665a88dc008dd2,
+    type: 2}
   m_UseShadowmask: 1
 --- !u!196 &4
 NavMeshSettings:
@@ -2021,7 +2022,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 24324684, guid: 0ac7fb39e445048d89688f69c2a1839a,
     type: 2}
-  m_audioClip: {fileID: 8300000, guid: 7db0c87ec4fdb0e48af04349c4f14df9, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 67f76755b8e1a414199e1477e73d47b9, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 0.25
   m_Pitch: 1
@@ -4855,6 +4856,10 @@ Prefab:
     - target: {fileID: 400080, guid: fe2eb0b4e90413643a3ddc78c368140f, type: 3}
       propertyPath: m_LocalScale.z
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 9500000, guid: fe2eb0b4e90413643a3ddc78c368140f, type: 3}
+      propertyPath: m_Controller
+      value: 
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: fe2eb0b4e90413643a3ddc78c368140f, type: 3}
