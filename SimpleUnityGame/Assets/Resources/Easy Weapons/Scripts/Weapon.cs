@@ -95,24 +95,22 @@ public class Weapon : MonoBehaviour
     private float heat = 0.0f;                          // The amount of time the weapon has been warming up, can be in the range of (0, maxWarmup)
 
     // Projectile
-    public GameObject projectile;                       // The projectile to be launched (if the type is projectile)
-    public Transform projectileSpawnSpot;               // The spot where the projectile should be instantiated
+   // public GameObject projectile;                       // The projectile to be launched (if the type is projectile)
+    //public Transform projectileSpawnSpot;               // The spot where the projectile should be instantiated
 
     // Beam
-    public bool reflect = true;                         // Whether or not the laser beam should reflect off of certain surfaces
-    public Material reflectionMaterial;                 // The material that reflects the laser.  If this is null, the laser will reflect off all surfaces
-    public int maxReflections = 5;                      // The maximum number of times the laser beam can reflect off surfaces.  Without this limit, the system can possibly become stuck in an infinite loop
-    public string beamTypeName = "laser_beam";          // This is the name that will be used as the name of the instantiated beam effect.  It is not necessary.
-    public float maxBeamHeat = 1.0f;                    // The time, in seconds, that the beam will last
-    public bool infiniteBeam = false;                   // If this is true the beam will never overheat (equivalent to infinite ammo)
-    public Material beamMaterial;                       // The material that will be used in the beam (line renderer.)  This should be a particle material
-    public Color beamColor = Color.red;                 // The color that will be used to tint the beam material
-    public float startBeamWidth = 0.5f;                 // The width of the beam on the starting side
-    public float endBeamWidth = 1.0f;                   // The width of the beam on the ending side
-    private float beamHeat = 0.0f;                      // Timer to keep track of beam warmup and cooldown
-    private bool coolingDown = false;                   // Whether or not the beam weapon is currently cooling off.  This is used to make sure the weapon isn't fired when it's too close to the maximum heat level
-    private GameObject beamGO;                          // The reference to the instantiated beam GameObject
-    private bool beaming = false;                       // Whether or not the weapon is currently firing a beam - used to make sure StopBeam() is called after the beam is no longer being fired
+    //public bool reflect = true;                         // Whether or not the laser beam should reflect off of certain surfaces
+    //public Material reflectionMaterial;                 // The material that reflects the laser.  If this is null, the laser will reflect off all surfaces
+    //public int maxReflections = 5;                      // The maximum number of times the laser beam can reflect off surfaces.  Without this limit, the system can possibly become stuck in an infinite loop
+    //public string beamTypeName = "laser_beam";          // This is the name that will be used as the name of the instantiated beam effect.  It is not necessary.
+    //public float maxBeamHeat = 1.0f;                    // The time, in seconds, that the beam will last
+   // public bool infiniteBeam = false;                   // If this is true the beam will never overheat (equivalent to infinite ammo)
+   // public Material beamMaterial;                       // The material that will be used in the beam (line renderer.)  This should be a particle material
+   // public Color beamColor = Color.red;                 // The color that will be used to tint the beam material
+    //public float startBeamWidth = 0.5f;                 // The width of the beam on the starting side
+    //public float endBeamWidth = 1.0f;                   // The width of the beam on the ending side
+    //private float beamHeat = 0.0f;                      // Timer to keep track of beam warmup and cooldown            
+   // private GameObject beamGO;                          // The reference to the instantiated beam GameObject        
 
     // Power
     public float power = 80.0f;                         // The amount of power this weapon has (how much damage it can cause) (if the type is raycast or beam)
@@ -231,37 +229,6 @@ public class Weapon : MonoBehaviour
             gameObject.AddComponent(typeof(AudioSource));
         }
 
-        // Make sure raycastStartSpot isn't null
-        if (raycastStartSpot == null)
-            raycastStartSpot = gameObject.transform;
-
-        // Make sure muzzleEffectsPosition isn't null
-        if (muzzleEffectsPosition == null)
-            muzzleEffectsPosition = gameObject.transform;
-
-        // Make sure projectileSpawnSpot isn't null
-        if (projectileSpawnSpot == null)
-            projectileSpawnSpot = gameObject.transform;
-
-        // Make sure weaponModel isn't null
-        if (weaponModel == null)
-            weaponModel = gameObject;
-
-        // Make sure crosshairTexture isn't null
-        if (crosshairTexture == null)
-            crosshairTexture = new Texture2D(0, 0);
-
-        // Initialize the bullet hole pools list
-        for (int i = 0; i < bulletHolePoolNames.Count; i++)
-        {
-            GameObject g = GameObject.Find(bulletHolePoolNames[i]);
-
-            if (g != null && g.GetComponent<BulletHolePool>() != null)
-                bulletHoleGroups[i].bulletHole = g.GetComponent<BulletHolePool>();
-            else
-                Debug.LogWarning("Bullet Hole Pool does not exist or does not have a BulletHolePool component.  Please assign GameObjects in the inspector that have the BulletHolePool component.");
-        }
-
         // Initialize the default bullet hole pools list
         for (int i = 0; i < defaultBulletHolePoolNames.Count; i++)
         {
@@ -277,8 +244,6 @@ public class Weapon : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
-
         // Calculate the current accuracy for this weapon
         currentAccuracy = Mathf.Lerp(currentAccuracy, accuracy, accuracyRecoverRate * Time.deltaTime);
 
@@ -304,14 +269,6 @@ public class Weapon : MonoBehaviour
             weaponModel.transform.position = Vector3.Lerp(weaponModel.transform.position, transform.position, recoilRecoveryRate * Time.deltaTime);
             weaponModel.transform.rotation = Quaternion.Lerp(weaponModel.transform.rotation, transform.rotation, recoilRecoveryRate * Time.deltaTime);
         }
-
-        // Make sure StopBeam() is called when the weapon is no longer firing a beam (calling the Beam() method)
-        if (type == WeaponType.Beam)
-        {
-            if (!beaming)
-                StopBeam();
-            beaming = false;    // The beaming variable is set to true every frame that the Beam() method is called
-        }
     }
 
     // Checks for user input to use the weapons - only if this weapon is player-controlled
@@ -319,64 +276,32 @@ public class Weapon : MonoBehaviour
     {
 
         // Fire if this is a raycast type weapon and the user presses the fire button
-        if (type == WeaponType.Raycast)
+        if (fireTimer >= actualROF && burstCounter < burstRate && canFire)
         {
-            if (fireTimer >= actualROF && burstCounter < burstRate && canFire)
+            if (Input.GetButton("Fire1"))
             {
-                if (Input.GetButton("Fire1"))
+                if (!warmup)    // Normal firing when the user holds down the fire button
                 {
-                    if (!warmup)    // Normal firing when the user holds down the fire button
-                    {
-                        Fire();
-                    }
-                    else if (heat < maxWarmup)  // Otherwise just add to the warmup until the user lets go of the button
-                    {
-                        heat += Time.deltaTime;
-                    }
+                    Fire();
                 }
-                if (warmup && Input.GetButtonUp("Fire1"))
+                else if (heat < maxWarmup)  // Otherwise just add to the warmup until the user lets go of the button
                 {
-                    if (allowCancel && Input.GetButton("Cancel"))
-                    {
-                        heat = 0.0f;
-                    }
-                    else
-                    {
-                        Fire();
-                    }
+                    heat += Time.deltaTime;
+                }
+            }
+            if (warmup && Input.GetButtonUp("Fire1"))
+            {
+                if (allowCancel && Input.GetButton("Cancel"))
+                {
+                    heat = 0.0f;
+                }
+                else
+                {
+                    Fire();
                 }
             }
         }
-        // Launch a projectile if this is a projectile type weapon and the user presses the fire button
-        if (type == WeaponType.Projectile)
-        {
-            if (fireTimer >= actualROF && burstCounter < burstRate && canFire)
-            {
-                if (Input.GetButton("Fire1"))
-                {
-                    if (!warmup)    // Normal firing when the user holds down the fire button
-                    {
-                        Launch();
-                    }
-                    else if (heat < maxWarmup)  // Otherwise just add to the warmup until the user lets go of the button
-                    {
-                        heat += Time.deltaTime;
-                    }
-                }
-                if (warmup && Input.GetButtonUp("Fire1"))
-                {
-                    if (allowCancel && Input.GetButton("Cancel"))
-                    {
-                        heat = 0.0f;
-                    }
-                    else
-                    {
-                        Launch();
-                    }
-                }
-            }
 
-        }
         // Reset the Burst
         if (burstCounter >= burstRate)
         {
@@ -387,27 +312,7 @@ public class Weapon : MonoBehaviour
                 burstTimer = 0.0f;
             }
         }
-        // Shoot a beam if this is a beam type weapon and the user presses the fire button
-        if (type == WeaponType.Beam)
-        {
-            if (Input.GetButton("Fire1") && beamHeat <= maxBeamHeat && !coolingDown)
-            {
-                Beam();
-            }
-            else
-            {
-                // Stop the beaming
-                StopBeam();
-            }
-            if (beamHeat >= maxBeamHeat)
-            {
-                coolingDown = true;
-            }
-            else if (beamHeat <= maxBeamHeat - (maxBeamHeat / 2))
-            {
-                coolingDown = false;
-            }
-        }
+
 
         // Reload if the "Reload" button is pressed
         if (Input.GetKeyDown(KeyCode.R))
@@ -418,116 +323,9 @@ public class Weapon : MonoBehaviour
             canFire = true;
     }
 
-    // A public method that causes the weapon to fire - can be called from other scripts - calls AI Firing for now
-    public void RemoteFire()
-    {
-        AIFiring();
-    }
-
-    // Determines when the AI can be firing
-    public void AIFiring()
-    {
-
-        // Fire if this is a raycast type weapon
-        if (type == WeaponType.Raycast)
-        {
-            if (fireTimer >= actualROF && burstCounter < burstRate && canFire)
-            {
-                StartCoroutine(DelayFire());    // Fires after the amount of time specified in delayBeforeFire
-            }
-        }
-        // Launch a projectile if this is a projectile type weapon
-        if (type == WeaponType.Projectile)
-        {
-            if (fireTimer >= actualROF && canFire)
-            {
-                StartCoroutine(DelayLaunch());
-            }
-        }
-        // Reset the Burst
-        if (burstCounter >= burstRate)
-        {
-            burstTimer += Time.deltaTime;
-            if (burstTimer >= burstPause)
-            {
-                burstCounter = 0;
-                burstTimer = 0.0f;
-            }
-        }
-        // Shoot a beam if this is a beam type weapon
-        if (type == WeaponType.Beam)
-        {
-            if (beamHeat <= maxBeamHeat && !coolingDown)
-            {
-                Beam();
-            }
-            else
-            {
-                // Stop the beaming
-                StopBeam();
-            }
-            if (beamHeat >= maxBeamHeat)
-            {
-                coolingDown = true;
-            }
-            else if (beamHeat <= maxBeamHeat - (maxBeamHeat / 2))
-            {
-                coolingDown = false;
-            }
-        }
-    }
-
-    IEnumerator DelayFire()
-    {
-        // Reset the fire timer to 0 (for ROF)
-        fireTimer = 0.0f;
-
-        // Increment the burst counter
-        burstCounter++;
-
-        // If this is a semi-automatic weapon, set canFire to false (this means the weapon can't fire again until the player lets up on the fire button)
-        if (auto == Auto.Semi)
-            canFire = false;
-
-        // Send a messsage so that users can do other actions whenever this happens
-        SendMessageUpwards("OnEasyWeaponsFire", SendMessageOptions.DontRequireReceiver);
-
-        yield return new WaitForSeconds(delayBeforeFire);
-        Fire();
-    }
-    IEnumerator DelayLaunch()
-    {
-        // Reset the fire timer to 0 (for ROF)
-        fireTimer = 0.0f;
-
-        // Increment the burst counter
-        burstCounter++;
-
-        // If this is a semi-automatic weapon, set canFire to false (this means the weapon can't fire again until the player lets up on the fire button)
-        if (auto == Auto.Semi)
-            canFire = false;
-
-        // Send a messsage so that users can do other actions whenever this happens
-        SendMessageUpwards("OnEasyWeaponsLaunch", SendMessageOptions.DontRequireReceiver);
-
-        yield return new WaitForSeconds(delayBeforeFire);
-        Launch();
-    }
-    IEnumerator DelayBeam()
-    {
-        yield return new WaitForSeconds(delayBeforeFire);
-        Beam();
-    }
-
 
     void OnGUI()
     {
-
-        // Crosshairs
-        if (type == WeaponType.Projectile || type == WeaponType.Beam)
-        {
-            currentAccuracy = accuracy;
-        }
         if (showCrosshair)
         {
             // Hold the location of the center of the screen in a variable
@@ -551,10 +349,10 @@ public class Weapon : MonoBehaviour
         // Ammo Display
         if (showCurrentAmmo)
         {
-            if (type == WeaponType.Raycast || type == WeaponType.Projectile)
+            //if (type == WeaponType.Raycast || type == WeaponType.Projectile)
                 GUI.Label(new Rect(10, Screen.height - 30, 100, 20), "Ammo: " + currentAmmo);
-            else if (type == WeaponType.Beam)
-                GUI.Label(new Rect(10, Screen.height - 30, 100, 20), "Heat: " + (int)(beamHeat * 100) + "/" + (int)(maxBeamHeat * 100));
+            //else if (type == WeaponType.Beam)
+            //    GUI.Label(new Rect(10, Screen.height - 30, 100, 20), "Heat: " + (int)(beamHeat * 100) + "/" + (int)(maxBeamHeat * 100));
         }
     }
 
@@ -613,10 +411,6 @@ public class Weapon : MonoBehaviour
                 // Damage
                 hit.collider.gameObject.SendMessageUpwards("ChangeHealth", -damage, SendMessageOptions.DontRequireReceiver);
 
-                if (shooterAIEnabled)
-                {
-                    hit.transform.SendMessageUpwards("Damage", damage / 100, SendMessageOptions.DontRequireReceiver);
-                }
 
                 if (bloodyMessEnabled)
                 {
@@ -625,167 +419,15 @@ public class Weapon : MonoBehaviour
                     {
                         Vector3 directionShot = hit.collider.transform.position - transform.position;
 
-                        //  Un-comment the following section for Bloody Mess compatibility
-                        /*
-						if (hit.collider.gameObject.GetComponent<Limb>())
-						{
-							GameObject parent = hit.collider.gameObject.GetComponent<Limb>().parent;
-							CharacterSetup character = parent.GetComponent<CharacterSetup>();
-							character.ApplyDamage(damage, hit.collider.gameObject, weaponType, directionShot, Camera.main.transform.position);
-						}
-						*/
                     }
                 }
 
-
-
-                // Bullet Holes
-
-                // Make sure the hit GameObject is not defined as an exception for bullet holes
-                bool exception = false;
-                if (bhSystem == BulletHoleSystem.Tag)
-                {
-                    foreach (SmartBulletHoleGroup bhg in bulletHoleExceptions)
-                    {
-                        if (hit.collider.gameObject.tag == bhg.tag)
-                        {
-                            exception = true;
-                            break;
-                        }
-                    }
-                }
-                else if (bhSystem == BulletHoleSystem.Material)
-                {
-                    foreach (SmartBulletHoleGroup bhg in bulletHoleExceptions)
-                    {
-                        MeshRenderer mesh = FindMeshRenderer(hit.collider.gameObject);
-                        if (mesh != null)
-                        {
-                            if (mesh.sharedMaterial == bhg.material)
-                            {
-                                exception = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-                else if (bhSystem == BulletHoleSystem.Physic_Material)
-                {
-                    foreach (SmartBulletHoleGroup bhg in bulletHoleExceptions)
-                    {
-                        if (hit.collider.sharedMaterial == bhg.physicMaterial)
-                        {
-                            exception = true;
-                            break;
-                        }
-                    }
-                }
-
-                // Select the bullet hole pools if there is no exception
-                if (makeBulletHoles && !exception)
-                {
-                    // A list of the bullet hole prefabs to choose from
-                    List<SmartBulletHoleGroup> holes = new List<SmartBulletHoleGroup>();
-
-                    // Display the bullet hole groups based on tags
-                    if (bhSystem == BulletHoleSystem.Tag)
-                    {
-                        foreach (SmartBulletHoleGroup bhg in bulletHoleGroups)
-                        {
-                            if (hit.collider.gameObject.tag == bhg.tag)
-                            {
-                                holes.Add(bhg);
-                            }
-                        }
-                    }
-
-                    // Display the bullet hole groups based on materials
-                    else if (bhSystem == BulletHoleSystem.Material)
-                    {
-                        // Get the mesh that was hit, if any
-                        MeshRenderer mesh = FindMeshRenderer(hit.collider.gameObject);
-
-                        foreach (SmartBulletHoleGroup bhg in bulletHoleGroups)
-                        {
-                            if (mesh != null)
-                            {
-                                if (mesh.sharedMaterial == bhg.material)
-                                {
-                                    holes.Add(bhg);
-                                }
-                            }
-                        }
-                    }
-
-                    // Display the bullet hole groups based on physic materials
-                    else if (bhSystem == BulletHoleSystem.Physic_Material)
-                    {
-                        foreach (SmartBulletHoleGroup bhg in bulletHoleGroups)
-                        {
-                            if (hit.collider.sharedMaterial == bhg.physicMaterial)
-                            {
-                                holes.Add(bhg);
-                            }
-                        }
-                    }
-
-
-                    SmartBulletHoleGroup sbhg = null;
-
-                    // If no bullet holes were specified for this parameter, use the default bullet holes
-                    if (holes.Count == 0)   // If no usable (for this hit GameObject) bullet holes were found...
-                    {
-                        List<SmartBulletHoleGroup> defaultsToUse = new List<SmartBulletHoleGroup>();
-                        foreach (BulletHolePool h in defaultBulletHoles)
-                        {
-                            defaultsToUse.Add(new SmartBulletHoleGroup("Default", null, null, h));
-                        }
-
-                        // Choose a bullet hole at random from the list
-                        sbhg = defaultsToUse[Random.Range(0, defaultsToUse.Count)];
-                    }
-
-                    // Make the actual bullet hole GameObject
-                    else
-                    {
-                        // Choose a bullet hole at random from the list
-                        sbhg = holes[Random.Range(0, holes.Count)];
-                    }
-
-                    // Place the bullet hole in the scene
-                    if (sbhg.bulletHole != null)
-                        sbhg.bulletHole.PlaceBulletHole(hit.point, Quaternion.FromToRotation(Vector3.up, hit.normal));
-                }
-
-                // Hit Effects
-                if (makeHitEffects)
-                {
-                    foreach (GameObject hitEffect in hitEffects)
-                    {
-                        if (hitEffect != null)
-                            Instantiate(hitEffect, hit.point, Quaternion.FromToRotation(Vector3.up, hit.normal));
-                    }
-                }
-
-                // Add force to the object that was hit
-                /*if (hit.rigidbody)
-                {
-                    hit.rigidbody.AddForce(ray.direction * power * forceMultiplier);
-                }*/
             }
         }
 
         // Recoil
         if (recoil)
             Recoil();
-
-        // Muzzle flash effects
-        if (makeMuzzleEffects)
-        {
-            GameObject muzfx = muzzleEffects[Random.Range(0, muzzleEffects.Length)];
-            if (muzfx != null)
-                Instantiate(muzfx, muzzleEffectsPosition.position, muzzleEffectsPosition.rotation);
-        }
 
         // Instantiate shell props
         if (spitShells)
@@ -799,254 +441,8 @@ public class Weapon : MonoBehaviour
         GetComponent<AudioSource>().PlayOneShot(fireSound);
     }
 
-    // Projectile system
-    public void Launch()
-    {
-        // Reset the fire timer to 0 (for ROF)
-        fireTimer = 0.0f;
-
-        // Increment the burst counter
-        burstCounter++;
-
-        // If this is a semi-automatic weapon, set canFire to false (this means the weapon can't fire again until the player lets up on the fire button)
-        if (auto == Auto.Semi)
-            canFire = false;
-
-        // First make sure there is ammo
-        if (currentAmmo <= 0)
-        {
-            DryFire();
-            return;
-        }
-
-        // Subtract 1 from the current ammo
-        if (!infiniteAmmo)
-            currentAmmo--;
-
-        // Fire once for each shotPerRound value
-        for (int i = 0; i < shotPerRound; i++)
-        {
-            // Instantiate the projectile
-            if (projectile != null)
-            {
-                GameObject proj = Instantiate(projectile, projectileSpawnSpot.position, projectileSpawnSpot.rotation) as GameObject;
-
-                // Warmup heat
-                if (warmup)
-                {
-                    if (multiplyPower)
-                        proj.SendMessage("MultiplyDamage", heat * powerMultiplier, SendMessageOptions.DontRequireReceiver);
-                    if (multiplyForce)
-                        proj.SendMessage("MultiplyInitialForce", heat * initialForceMultiplier, SendMessageOptions.DontRequireReceiver);
-
-                    heat = 0.0f;
-                }
-            }
-            else
-            {
-                Debug.Log("Projectile to be instantiated is null.  Make sure to set the Projectile field in the inspector.");
-            }
-        }
-
-        // Recoil
-        if (recoil)
-            Recoil();
-
-        // Muzzle flash effects
-        if (makeMuzzleEffects)
-        {
-            GameObject muzfx = muzzleEffects[Random.Range(0, muzzleEffects.Length)];
-            if (muzfx != null)
-                Instantiate(muzfx, muzzleEffectsPosition.position, muzzleEffectsPosition.rotation);
-        }
-
-        // Instantiate shell props
-        if (spitShells)
-        {
-            GameObject shellGO = Instantiate(shell, shellSpitPosition.position, shellSpitPosition.rotation) as GameObject;
-            shellGO.GetComponent<Rigidbody>().AddRelativeForce(new Vector3(shellSpitForce + Random.Range(0, shellForceRandom), 0, 0), ForceMode.Impulse);
-            shellGO.GetComponent<Rigidbody>().AddRelativeTorque(new Vector3(shellSpitTorqueX + Random.Range(-shellTorqueRandom, shellTorqueRandom), shellSpitTorqueY + Random.Range(-shellTorqueRandom, shellTorqueRandom), 0), ForceMode.Impulse);
-        }
-
-        // Play the gunshot sound
-        GetComponent<AudioSource>().PlayOneShot(fireSound);
-    }
-
-    // Beam system
-    void Beam()
-    {
-        // Send a messsage so that users can do other actions whenever this happens
-        SendMessageUpwards("OnEasyWeaponsBeaming", SendMessageOptions.DontRequireReceiver);
-
-        // Set the beaming variable to true
-        beaming = true;
-
-        // Make the beam weapon heat up as it is being used
-        if (!infiniteBeam)
-            beamHeat += Time.deltaTime;
-
-        // Make the beam effect if it hasn't already been made.  This system uses a line renderer on an otherwise empty instantiated GameObject
-        if (beamGO == null)
-        {
-            beamGO = new GameObject(beamTypeName, typeof(LineRenderer));
-            beamGO.transform.parent = transform;        // Make the beam object a child of the weapon object, so that when the weapon is deactivated the beam will be as well	- was beamGO.transform.SetParent(transform), which only works in Unity 4.6 or newer;
-        }
-        LineRenderer beamLR = beamGO.GetComponent<LineRenderer>();
-        beamLR.material = beamMaterial;
-        beamLR.material.SetColor("_TintColor", beamColor);
-        beamLR.SetWidth(startBeamWidth, endBeamWidth);
-
-        // The number of reflections
-        int reflections = 0;
-
-        // All the points at which the laser is reflected
-        List<Vector3> reflectionPoints = new List<Vector3>();
-        // Add the first point to the list of beam reflection points
-        reflectionPoints.Add(raycastStartSpot.position);
-
-        // Hold a variable for the last reflected point
-        Vector3 lastPoint = raycastStartSpot.position;
-
-        // Declare variables for calculating rays
-        Vector3 incomingDirection;
-        Vector3 reflectDirection;
-
-        // Whether or not the beam needs to continue reflecting
-        bool keepReflecting = true;
-
-        // Raycasting (damgage, etc)
-        Ray ray = new Ray(lastPoint, raycastStartSpot.forward);
-        RaycastHit hit;
 
 
-
-        do
-        {
-            // Initialize the next point.  If a raycast hit is not returned, this will be the forward direction * range
-            Vector3 nextPoint = ray.direction * range;
-
-            if (Physics.Raycast(ray, out hit, range))
-            {
-                // Set the next point to the hit location from the raycast
-                nextPoint = hit.point;
-
-                // Calculate the next direction in which to shoot a ray
-                incomingDirection = nextPoint - lastPoint;
-                reflectDirection = Vector3.Reflect(incomingDirection, hit.normal);
-                ray = new Ray(nextPoint, reflectDirection);
-
-                // Update the lastPoint variable
-                lastPoint = hit.point;
-
-                // Hit Effects
-                if (makeHitEffects)
-                {
-                    foreach (GameObject hitEffect in hitEffects)
-                    {
-                        if (hitEffect != null)
-                            Instantiate(hitEffect, hit.point, Quaternion.FromToRotation(Vector3.up, hit.normal));
-                    }
-                }
-
-                // Damage
-                hit.collider.gameObject.SendMessageUpwards("ChangeHealth", -beamPower, SendMessageOptions.DontRequireReceiver);
-
-                // Shooter AI support
-                if (shooterAIEnabled)
-                {
-                    hit.transform.SendMessageUpwards("Damage", beamPower / 100, SendMessageOptions.DontRequireReceiver);
-                }
-
-                // Bloody Mess support
-                if (bloodyMessEnabled)
-                {
-                    //call the ApplyDamage() function on the enenmy CharacterSetup script
-                    if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Limb"))
-                    {
-                        Vector3 directionShot = hit.collider.transform.position - transform.position;
-
-                        //  Remove the comment marks from the following section of code for Bloody Mess support
-                        /*
-						if (hit.collider.gameObject.GetComponent<Limb>())
-						{
-							GameObject parent = hit.collider.gameObject.GetComponent<Limb>().parent;
-							
-							CharacterSetup character = parent.GetComponent<CharacterSetup>();
-							character.ApplyDamage(beamPower, hit.collider.gameObject, weaponType, directionShot, Camera.main.transform.position);
-						}
-						*/
-
-                    }
-                }
-
-
-                // Increment the reflections counter
-                reflections++;
-            }
-            else
-            {
-
-                keepReflecting = false;
-            }
-
-            // Add the next point to the list of beam reflection points
-            reflectionPoints.Add(nextPoint);
-
-        } while (keepReflecting && reflections < maxReflections && reflect && (reflectionMaterial == null || (FindMeshRenderer(hit.collider.gameObject) != null && FindMeshRenderer(hit.collider.gameObject).sharedMaterial == reflectionMaterial)));
-
-        // Set the positions of the vertices of the line renderer beam
-        beamLR.SetVertexCount(reflectionPoints.Count);
-        for (int i = 0; i < reflectionPoints.Count; i++)
-        {
-            beamLR.SetPosition(i, reflectionPoints[i]);
-
-            // Muzzle reflection effects
-            if (makeMuzzleEffects && i > 0)     // Doesn't make the FX on the first iteration since that is handled later.  This is so that the FX at the muzzle point can be parented to the weapon
-            {
-                GameObject muzfx = muzzleEffects[Random.Range(0, muzzleEffects.Length)];
-                if (muzfx != null)
-                {
-                    Instantiate(muzfx, reflectionPoints[i], muzzleEffectsPosition.rotation);
-                }
-            }
-        }
-
-        // Muzzle flash effects
-        if (makeMuzzleEffects)
-        {
-            GameObject muzfx = muzzleEffects[Random.Range(0, muzzleEffects.Length)];
-            if (muzfx != null)
-            {
-                GameObject mfxGO = Instantiate(muzfx, muzzleEffectsPosition.position, muzzleEffectsPosition.rotation) as GameObject;
-                mfxGO.transform.parent = raycastStartSpot;
-            }
-        }
-
-        // Play the beam fire sound
-        if (!GetComponent<AudioSource>().isPlaying)
-        {
-            GetComponent<AudioSource>().clip = fireSound;
-            GetComponent<AudioSource>().Play();
-        }
-    }
-
-    public void StopBeam()
-    {
-        // Restart the beam timer
-        beamHeat -= Time.deltaTime;
-        if (beamHeat < 0)
-            beamHeat = 0;
-        GetComponent<AudioSource>().Stop();
-
-        // Remove the visible beam effect GameObject
-        if (beamGO != null)
-        {
-            Destroy(beamGO);
-        }
-
-        // Send a messsage so that users can do other actions whenever this happens
-        SendMessageUpwards("OnEasyWeaponsStopBeaming", SendMessageOptions.DontRequireReceiver);
-    }
 
 
     // Reload the weapon
