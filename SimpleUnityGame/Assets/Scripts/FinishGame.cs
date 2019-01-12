@@ -21,8 +21,6 @@ public class FinishGame : MonoBehaviour {
         StartCoroutine(Wait(4.0f));
     }
 
-
-
     IEnumerator Wait(float seconds)
     {
         yield return new WaitForSeconds(seconds);
